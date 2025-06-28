@@ -1,4 +1,4 @@
-**Para poder correr el analizador sintactico se puede ejecutar de las siguientes maneras:**
+#Para poder correr el analizador sintactico se puede ejecutar de las siguientes maneras:
 
 Corriendo el main. (Mayús + F10)
 
@@ -13,7 +13,7 @@ dot -Tpng programa_ast.dot -o ast.png
 
 Y lo guardara en una imagen .png que se puede visualizar para ver el árbol generado.
 
-**En el caso de que no estén los archivos generados por JavaCC, en el package parser:**
+#En el caso de que no estén los archivos generados por JavaCC, en el package parser:
 
 > javacc .\parser\SyntaxChecker.jj
 

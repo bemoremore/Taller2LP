@@ -1,0 +1,19 @@
+//Ejemplo bueno de un calculo de fibonacci
+int fibonacci(int n) {
+    int a;
+    int b;
+    int c;
+    int i;
+
+    a = 0;
+    b = 1;
+    i = 2;
+
+    while (i < n) {
+        c = a + b;
+        a = b;
+        b = c;
+        i = i + 1;
+    }
+    return b;
+}//Inspo balatro.

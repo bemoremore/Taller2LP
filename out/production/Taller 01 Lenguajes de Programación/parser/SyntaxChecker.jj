@@ -1,0 +1,411 @@
+options {
+    STATIC = false;
+    LOOKAHEAD = 2;
+}
+
+PARSER_BEGIN(SyntaxChecker)
+package parser;
+
+import ast.*;
+import syntaxvisitor.GrapherVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.ArrayList;
+
+public class SyntaxChecker {
+}
+
+PARSER_END(SyntaxChecker)
+
+/* TOKENS */
+
+TOKEN : {
+    < IF: "if" >
+|   < ELSE: "else" >
+|   < WHILE: "while" >
+|   < DO: "do" >
+|   < RETURN: "return" >
+|   < INT: "int" >
+|   < VOID: "void" >
+}
+
+TOKEN : {
+    < IDENTIFIER: ["a"-"z","A"-"Z","_"] (["a"-"z","A"-"Z","0"-"9","_"])* >
+|   < NUMBER: (["0"-"9"])+ >
+}
+
+TOKEN : {
+    < PLUS: "+" >
+|   < MINUS: "-" >
+|   < MULTIPLY: "*" >
+|   < DIVIDE: "/" >
+|   < LT: "<" >
+|   < LE: "<=" >
+|   < GT: ">" >
+|   < GE: ">=" >
+|   < EQ: "==" >
+|   < NE: "<>" >
+|   < ASSIGN: "=" >
+}
+
+TOKEN : {
+    < LPAREN: "(" >
+|   < RPAREN: ")" >
+|   < LBRACE: "{" >
+|   < RBRACE: "}" >
+|   < LBRACKET: "[" >
+|   < RBRACKET: "]" >
+|   < SEMICOLON: ";" >
+|   < COMMA: "," >
+}
+
+SKIP : {
+    " " | "\t" | "\n" | "\r"
+}
+
+SKIP : {
+    < "/*" (~["*"])* "*" (~["/"] (~["*"])* "*")* "/" >
+|   < "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n") >
+}
+
+/* GRAMMAR RULES */
+
+ProgramNode program() :
+{
+    List<DeclarationNode> declarations = new ArrayList<DeclarationNode>();
+    DeclarationNode decl;
+}
+{
+    ( decl = declaration() { declarations.add(decl); } )+
+    <EOF>
+    { return new ProgramNode(declarations); }
+}
+
+DeclarationNode declaration() :
+{
+    TypeSpecifierNode type;
+    String id;
+}
+{
+    type = typeSpecifier()
+    id = <IDENTIFIER>.image
+    (
+        LOOKAHEAD(2)
+        <LPAREN> { return funDeclaration(type, id); }
+    |
+        { return varDeclaration(type, id); }
+    )
+}
+
+VarDeclarationNode varDeclaration(TypeSpecifierNode type, String id) :
+{
+    ExpressionNode size = null;
+}
+{
+    (
+        <SEMICOLON>
+        { return new VarDeclarationNode(type, id); }
+    |
+        <LBRACKET> size = expression() <RBRACKET> <SEMICOLON>
+        { return new VarDeclarationNode(type, id, size); }
+    )
+}
+
+FunDeclarationNode funDeclaration(TypeSpecifierNode type, String id) :
+{
+    List<ParamNode> params;
+    CompoundStmtNode body;
+}
+{
+    params = params() <RPAREN> body = compoundStmt()
+    { return new FunDeclarationNode(type, id, params, body); }
+}
+
+TypeSpecifierNode typeSpecifier() :
+{}
+{
+    (
+        <INT> { return new TypeSpecifierNode(TypeSpecifierNode.Type.INT); }
+    |   <VOID> { return new TypeSpecifierNode(TypeSpecifierNode.Type.VOID); }
+    )
+}
+
+List<ParamNode> params() :
+{
+    List<ParamNode> paramList = new ArrayList<ParamNode>();
+    ParamNode param;
+}
+{
+    (
+        <VOID>
+        (
+            LOOKAHEAD(2)
+            <IDENTIFIER> param = voidParam() { paramList.add(param); }
+            ( <COMMA> param = param() { paramList.add(param); } )*
+        |
+            { /* void parameter list */ }
+        )
+        { return paramList; }
+    |
+        param = param() { paramList.add(param); }
+        ( <COMMA> param = param() { paramList.add(param); } )*
+        { return paramList; }
+    |
+        { return paramList; }
+    )
+}
+
+ParamNode voidParam() :
+{
+    String id;
+    boolean isArray = false;
+}
+{
+    id = <IDENTIFIER>.image
+    ( <LBRACKET> <RBRACKET> { isArray = true; } )?
+    { return new ParamNode(new TypeSpecifierNode(TypeSpecifierNode.Type.VOID), id, isArray); }
+}
+
+ParamNode param() :
+{
+    TypeSpecifierNode type;
+    String id;
+    boolean isArray = false;
+}
+{
+    type = typeSpecifier()
+    id = <IDENTIFIER>.image
+    ( <LBRACKET> <RBRACKET> { isArray = true; } )?
+    { return new ParamNode(type, id, isArray); }
+}
+
+CompoundStmtNode compoundStmt() :
+{
+    List<VarDeclarationNode> localDecls = new ArrayList<VarDeclarationNode>();
+    List<StatementNode> statements = new ArrayList<StatementNode>();
+    VarDeclarationNode varDecl;
+    StatementNode stmt;
+}
+{
+    <LBRACE>
+    (
+        LOOKAHEAD(typeSpecifier() <IDENTIFIER> (<LBRACKET>|<SEMICOLON>))
+        varDecl = localVarDeclaration() { localDecls.add(varDecl); }
+    )*
+    ( stmt = statement() { statements.add(stmt); } )*
+    <RBRACE>
+    { return new CompoundStmtNode(localDecls, statements); }
+}
+
+VarDeclarationNode localVarDeclaration() :
+{
+    TypeSpecifierNode type;
+    String id;
+    ExpressionNode size = null;
+}
+{
+    type = typeSpecifier()
+    id = <IDENTIFIER>.image
+    (
+        <SEMICOLON>
+        { return new VarDeclarationNode(type, id); }
+    |
+        <LBRACKET> size = expression() <RBRACKET> <SEMICOLON>
+        { return new VarDeclarationNode(type, id, size); }
+    )
+}
+
+StatementNode statement() :
+{
+    StatementNode stmt;
+}
+{
+    (
+        stmt = expressionStmt()
+    |   stmt = compoundStmt()
+    |   stmt = ifStmt()
+    |   stmt = whileStmt()
+    |   stmt = doWhileStmt()
+    |   stmt = returnStmt()
+    )
+    { return stmt; }
+}
+
+ExpressionStmtNode expressionStmt() :
+{
+    ExpressionNode expr = null;
+}
+{
+    ( expr = expression() )? <SEMICOLON>
+    { return new ExpressionStmtNode(expr); }
+}
+
+IfNode ifStmt() :
+{
+    ExpressionNode condition;
+    StatementNode thenStmt;
+    StatementNode elseStmt = null;
+}
+{
+    <IF> <LPAREN> condition = expression() <RPAREN>
+    thenStmt = statement()
+    (
+        LOOKAHEAD(1)
+        <ELSE> elseStmt = statement()
+    )?
+    { return new IfNode(condition, thenStmt, elseStmt); }
+}
+
+WhileNode whileStmt() :
+{
+    ExpressionNode condition;
+    StatementNode body;
+}
+{
+    <WHILE> <LPAREN> condition = expression() <RPAREN>
+    body = statement()
+    { return new WhileNode(condition, body); }
+}
+
+DoWhileNode doWhileStmt() :
+{
+    StatementNode body;
+    ExpressionNode condition;
+}
+{
+    <DO> body = statement() <WHILE> <LPAREN> condition = expression() <RPAREN> <SEMICOLON>
+    { return new DoWhileNode(body, condition); }
+}
+
+ReturnNode returnStmt() :
+{
+    ExpressionNode expr = null;
+}
+{
+    <RETURN> ( expr = expression() )? <SEMICOLON>
+    { return new ReturnNode(expr); }
+}
+
+ExpressionNode expression() :
+{
+    ExpressionNode expr;
+}
+{
+    expr = assignmentExpression()
+    { return expr; }
+}
+
+ExpressionNode assignmentExpression() :
+{
+    ExpressionNode left, right;
+}
+{
+    left = relationalExpression()
+    (
+        <ASSIGN> right = assignmentExpression()
+        { left = new BinaryOpNode(left, BinaryOpNode.Operator.ASSIGN, right); }
+    )?
+    { return left; }
+}
+
+ExpressionNode relationalExpression() :
+{
+    ExpressionNode left, right;
+    BinaryOpNode.Operator op;
+}
+{
+    left = additiveExpression()
+    (
+        (
+            <LT> { op = BinaryOpNode.Operator.LT; }
+        |   <LE> { op = BinaryOpNode.Operator.LE; }
+        |   <GT> { op = BinaryOpNode.Operator.GT; }
+        |   <GE> { op = BinaryOpNode.Operator.GE; }
+        |   <EQ> { op = BinaryOpNode.Operator.EQ; }
+        |   <NE> { op = BinaryOpNode.Operator.NE; }
+        )
+        right = additiveExpression()
+        { left = new BinaryOpNode(left, op, right); }
+    )*
+    { return left; }
+}
+
+ExpressionNode additiveExpression() :
+{
+    ExpressionNode left, right;
+    BinaryOpNode.Operator op;
+}
+{
+    left = multiplicativeExpression()
+    (
+        (
+            <PLUS> { op = BinaryOpNode.Operator.PLUS; }
+        |   <MINUS> { op = BinaryOpNode.Operator.MINUS; }
+        )
+        right = multiplicativeExpression()
+        { left = new BinaryOpNode(left, op, right); }
+    )*
+    { return left; }
+}
+
+ExpressionNode multiplicativeExpression() :
+{
+    ExpressionNode left, right;
+    BinaryOpNode.Operator op;
+}
+{
+    left = primaryExpression()
+    (
+        (
+            <MULTIPLY> { op = BinaryOpNode.Operator.MULTIPLY; }
+        |   <DIVIDE> { op = BinaryOpNode.Operator.DIVIDE; }
+        )
+        right = primaryExpression()
+        { left = new BinaryOpNode(left, op, right); }
+    )*
+    { return left; }
+}
+
+ExpressionNode primaryExpression() :
+{
+    ExpressionNode expr;
+    String id;
+    Token num;
+    List<ExpressionNode> args;
+}
+{
+    (
+        <LPAREN> expr = expression() <RPAREN>
+        { return expr; }
+    |
+        id = <IDENTIFIER>.image
+        (
+            LOOKAHEAD(2)
+            <LBRACKET> expr = expression() <RBRACKET>
+            { return new VarNode(id, expr); }
+        |
+            LOOKAHEAD(2)
+            <LPAREN> args = arguments() <RPAREN>
+            { return new CallNode(id, args); }
+        |
+            { return new VarNode(id); }
+        )
+    |
+        num = <NUMBER>
+        { return new NumberNode(Integer.parseInt(num.image)); }
+    )
+}
+
+List<ExpressionNode> arguments() :
+{
+    List<ExpressionNode> args = new ArrayList<ExpressionNode>();
+    ExpressionNode expr;
+}
+{
+    (
+        expr = expression() { args.add(expr); }
+        ( <COMMA> expr = expression() { args.add(expr); } )*
+    )?
+    { return args; }
+}
