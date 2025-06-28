@@ -1,0 +1,6 @@
+//Contiene un error en parentesis.
+int x{int x = 5;
+int b = 2;
+suma = x + b;
+return suma;
+}

@@ -1,0 +1,9 @@
+void parentesis(int x){
+    int muchos;
+    muchos = 5;
+    if {(muchos > 5)} {
+        return muchos;
+    } else {
+        return x + 2;
+    }
+}

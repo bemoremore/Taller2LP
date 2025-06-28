@@ -1,0 +1,11 @@
+Para poder correr el analizador se debe ejecutar:
+> java SyntaxChecker
+
+Y va analizar el contenido del programa en el archivo 'programa.cmm'
+
+En el caso de que no estén los archivos generados por JavaCC, en la carpeta raíz del proyecto ejecutar:
+
+> javacc .\Main.jj
+> javac *.java
+
+Esto generara un conjunto de archivos para el analizador, luego se debe ejecutar inicialmente el primer comando

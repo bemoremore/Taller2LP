@@ -1,0 +1,263 @@
+.------- PROGRAMA 1 -------.
+
+//Ejemplo bueno de un calculo de fibonacci
+
+int fibonacci(int n) {
+    int a;
+    int b;
+    int c;
+    int i;
+
+    a = 0;
+    b = 1;
+    i = 2;
+
+    while (i < n) {
+        c = a + b;
+        a = b;
+        b = c;
+        i = i + 1;
+    }
+    return b;
+}//Inspo balatro.
+
+Resultado de consola:
+
+Program:
+  Function: fibonacci
+    Param: n
+    Compound Statement:
+      Variable: a
+      Variable: b
+      Variable: c
+      Variable: i
+      Expression Statement:
+        Binary Operation: ASSIGN
+          Variable Reference: a
+          Number: 0
+      Expression Statement:
+        Binary Operation: ASSIGN
+          Variable Reference: b
+          Number: 1
+      Expression Statement:
+        Binary Operation: ASSIGN
+          Variable Reference: i
+          Number: 2
+      While:
+        Binary Operation: LT
+          Variable Reference: i
+          Variable Reference: n
+        Compound Statement:
+          Expression Statement:
+            Binary Operation: ASSIGN
+              Variable Reference: c
+              Binary Operation: PLUS
+                Variable Reference: a
+                Variable Reference: b
+          Expression Statement:
+            Binary Operation: ASSIGN
+              Variable Reference: a
+              Variable Reference: b
+          Expression Statement:
+            Binary Operation: ASSIGN
+              Variable Reference: b
+              Variable Reference: c
+          Expression Statement:
+            Binary Operation: ASSIGN
+              Variable Reference: i
+              Binary Operation: PLUS
+                Variable Reference: i
+                Number: 1
+      Return:
+        Variable Reference: b
+Grafo del AST guardado en: programa_ast.dot
+
+
+.------- PROGRAMA 2 -------.
+
+int main(void) {
+    int x;
+    int arr[10];
+    x = 5;
+    return x;
+}
+
+Resultado de consola:
+
+Program:
+  Function: main
+    Compound Statement:
+      Variable: x
+      Variable: arr [array]
+      Expression Statement:
+        Binary Operation: ASSIGN
+          Variable Reference: x
+          Number: 5
+      Return:
+        Variable Reference: x
+Grafo del AST guardado en: programa_ast.dot
+
+.------- PROGRAMA 3 -------.
+
+int esPar(int num) {
+    int resto;
+
+    resto = num - (num / 2) * 2;
+
+    if (resto == 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int main(void) {
+    int numero;
+    int resultado;
+
+    numero = 8;
+    resultado = esPar(numero);
+    return resultado;
+}
+
+Resultado de consola:
+
+Program:
+  Function: esPar
+    Param: num
+    Compound Statement:
+      Variable: resto
+      Expression Statement:
+        Binary Operation: ASSIGN
+          Variable Reference: resto
+          Binary Operation: MINUS
+            Variable Reference: num
+            Binary Operation: MULTIPLY
+              Binary Operation: DIVIDE
+                Variable Reference: num
+                Number: 2
+              Number: 2
+      If:
+        Binary Operation: EQ
+          Variable Reference: resto
+          Number: 0
+        Compound Statement:
+          Return:
+            Number: 1
+        Else:
+        Compound Statement:
+          Return:
+            Number: 0
+  Function: main
+    Compound Statement:
+      Variable: numero
+      Variable: resultado
+      Expression Statement:
+        Binary Operation: ASSIGN
+          Variable Reference: numero
+          Number: 8
+      Expression Statement:
+        Binary Operation: ASSIGN
+          Variable Reference: resultado
+          Function Call: esPar
+            Variable Reference: numero
+      Return:
+        Variable Reference: resultado
+Grafo del AST guardado en: programa_ast.dot
+
+.------- PROGRAMA 4 -------.
+
+//Contiene un error en parentesis.
+int x{int x = 5;
+int b = 2;
+suma = x + b;
+return suma;
+}
+
+Resultado de consola:
+
+Error: Encountered " "{" "{ "" at line 2, column 6.
+Was expecting one of:
+    "(" ...
+    ";" ...
+    "[" ...
+
+
+
+.------- PROGRAMA 5 -------.
+
+//Mala asignación del valor de la variable x.
+int w(void){
+    int x = 5;
+    return x;
+}
+
+Resultado de consola:
+
+Error: Encountered " "int" "int "  <IDENTIFIER> "x "  "=" "= "" at line 2, column 5.
+Was expecting one of:
+    "}" ...
+    "int" <IDENTIFIER> "[" ...
+    "int" <IDENTIFIER> ";" ...
+    "(" ...
+    <IDENTIFIER> ...
+    <NUMBER> ...
+    ";" ...
+    "{" ...
+    "if" ...
+    "while" ...
+    "do" ...
+    "return" ...
+
+.------- PROGRAMA 6 -------.
+
+//Error en la segunda linea por el ;
+int main(void){
+    int x
+    return x;
+}
+
+Resultado de consola:
+
+Error: Encountered " "int" "int "  <IDENTIFIER> "x "  "return" "return "" at line 2, column 5.
+Was expecting one of:
+    "}" ...
+    "int" <IDENTIFIER> "[" ...
+    "int" <IDENTIFIER> ";" ...
+    "(" ...
+    <IDENTIFIER> ...
+    <NUMBER> ...
+    ";" ...
+    "{" ...
+    "if" ...
+    "while" ...
+    "do" ...
+    "return" ...
+
+.------- PROGRAMA 7 -------.
+
+//Muchos parentesis en un if.
+void parentesis(int x){
+    int muchos;
+    muchos = 5;
+    if {(muchos > 5)} {
+        return muchos;
+    } else {
+        return x / 2;
+    }
+}
+
+Resultado de consola:
+
+Error: Encountered " "if" "if "  "{" "{ "" at line 4, column 5.
+Was expecting one of:
+    "}" ...
+    "(" ...
+    <IDENTIFIER> ...
+    <NUMBER> ...
+    ";" ...
+    "{" ...
+    "if" "(" ...
+    "while" ...
+    "do" ...
+    "return" ...

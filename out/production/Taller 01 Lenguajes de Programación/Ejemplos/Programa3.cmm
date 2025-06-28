@@ -1,0 +1,20 @@
+int esPar(int num) {
+    int resto;
+
+    resto = num - (num / 2) * 2;
+
+    if (resto == 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int main(void) {
+    int numero;
+    int resultado;
+
+    numero = 8;
+    resultado = esPar(numero);
+    return resultado;
+}

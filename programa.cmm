@@ -1,0 +1,17 @@
+//Ejemplo bueno
+int main(void) {
+    int x;
+    int arr[10];
+    x = 5;
+    return x;
+}
+//Ejemplo malo
+void parentesis(int x){
+    int muchos;
+    muchos = 5;
+    if {(muchos > 5)} {
+        return muchos;
+    } else {
+        return x / 2;
+    }
+}

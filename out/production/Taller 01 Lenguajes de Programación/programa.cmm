@@ -1,0 +1,16 @@
+int main(void) {
+    int x;
+    int arr[10];
+    x = 5;
+    return x;
+}
+
+void parentesis(int x){
+    int muchos;
+    muchos = 5;
+    if {(muchos > 5)} {
+        return muchos;
+    } else {
+        return x / 2;
+    }
+}
